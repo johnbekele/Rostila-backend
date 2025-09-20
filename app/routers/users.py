@@ -10,6 +10,8 @@ users_db = [
     {"id": 2, "name": "Jane Smith", "email": "jane@example.com"},
 ]
 
+cp=dict_user.copy()
+
 @router.get("/")
 def get_users():
     dict_users={}
