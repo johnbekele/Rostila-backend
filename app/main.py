@@ -1,15 +1,17 @@
 from fastapi import FastAPI
+from contextlib import asynccontextmanager
+from app.database import init_database, close_database
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Connect to MongoDB
+    await init_database()
+    yield
+    # Shutdown: Close MongoDB connection
+    await close_database()
+
+app = FastAPI(lifespan=lifespan)
+
+# routes
 from app.routers import users
-
-app = FastAPI(title="My FastAPI App", version="1.0.0")
-
-# Include routers
-app.include_router(users.router, prefix="/api")
-
-@app.get("/")
-def read_root():
-    return {"message": "Hello World"}
-
-@app.get("/health")
-def health_check():
-    return {"status": "healthy"}
+app.include_router(users.router ,tags=["users"] , prefix="/api/users")

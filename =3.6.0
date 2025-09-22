@@ -1,0 +1,14 @@
+Requirement already satisfied: motor in ./myenv/lib/python3.12/site-packages (3.3.2)
+Collecting motor
+  Downloading motor-3.7.1-py3-none-any.whl.metadata (21 kB)
+Requirement already satisfied: pymongo<5.0,>=4.9 in ./myenv/lib/python3.12/site-packages (from motor) (4.15.1)
+Requirement already satisfied: dnspython<3.0.0,>=1.16.0 in ./myenv/lib/python3.12/site-packages (from pymongo<5.0,>=4.9->motor) (2.8.0)
+Downloading motor-3.7.1-py3-none-any.whl (74 kB)
+   ━━━━━━━ 75.0/7… 487.2   eta 0:00:00
+           kB      kB/s               
+Installing collected packages: motor
+  Attempting uninstall: motor
+    Found existing installation: motor 3.3.2
+    Uninstalling motor-3.3.2:
+      Successfully uninstalled motor-3.3.2
+Successfully installed motor-3.7.1

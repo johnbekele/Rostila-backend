@@ -1,34 +1,21 @@
-from fastapi import APIRouter
-from typing import List
-from app.schemas import User, UserCreate
+from fastapi import APIRouter, Depends
+from app.services.user_service import UserService
+from app.schemas.users import UserCreate
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter()
 
-# Mock database
-users_db = [
-    {"id": 1, "name": "John Doe", "email": "john@example.com"},
-    {"id": 2, "name": "Jane Smith", "email": "jane@example.com"},
-]
-
-cp=dict_user.copy()
+def get_user_service() -> UserService:
+    return UserService()
 
 @router.get("/")
-def get_users():
-    dict_users={}
-    for user in users_db:
-       dict_users.update({user["id"]:user})
-   
-    return dict_users
+async def get_users(user_service: UserService = Depends(get_user_service)):
+    return await user_service.get_all_users()
 
-@router.get("/{user_id}", response_model=User)
-def get_user(user_id: int):
-    user = next((u for u in users_db if u["id"] == user_id), None)
-    if not user:
-        return {"error": "User not found"}
-    return user
+@router.post("/")
+async def create_user(user_data: UserCreate,user_service:UserService=Depends(get_user_service)):
+    return await user_service.create_user(user_data)
 
-@router.post("/", response_model=User)
-def create_user(user: UserCreate):
-    new_user = {"id": len(users_db) + 1, **user.dict()}
-    users_db.append(new_user)
-    return new_user
+@router.post("/{email}")
+async def getUser_byemail(email:str,user_service:UserService=Depends(get_user_service)):
+    print("find Function invoked")
+    return await user_service.get_user_by_email(email)
