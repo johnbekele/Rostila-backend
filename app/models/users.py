@@ -10,15 +10,17 @@ class User(Document):
     User model - like Mongoose schema
     Beanie handles _id automatically
     """
-    email: Indexed(EmailStr, unique=True)  # Unique index like Mongoose
-    username: Indexed(str, unique=True)    # Unique index
+    email: Indexed(EmailStr, unique=True)
+    username: Indexed(str, unique=True)
     hashed_password: str
     first_name: str
     last_name: str
     is_active: bool = True
+    is_verified: bool = False  # Email verification
+    last_login: Optional[datetime] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: Optional[datetime] = None
-    
+
     class Settings:
         # Collection name (like Mongoose model name)
         collection = "users"
@@ -30,4 +32,5 @@ class User(Document):
             "created_at",
         ]
     
-   
+    def full_name(self) -> str:
+        return f"{self.first_name} {self.last_name}"
