@@ -60,3 +60,23 @@ class UserProfile(BaseModel):
     is_active: bool
     created_at: datetime
     last_login: Optional[datetime] = None
+
+
+# TokenResponse 
+class TokenResponse(BaseModel):
+    """Response model for authentication tokens"""
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    expires_in: int = 1800  # 30 minutes in seconds
+
+class RefreshTokenRequest(BaseModel):
+    """Request model for token refresh"""
+    refresh_token: str
+    
+    @validator('refresh_token')
+    def validate_refresh_token(cls, v):
+        if not v or len(v.strip()) == 0:
+            raise ValueError('Refresh token cannot be empty')
+        return v.strip()
+    

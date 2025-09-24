@@ -1,6 +1,6 @@
 # models/auth.py
 from beanie import Document
-from pydantic import Field
+from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional
 
@@ -27,3 +27,4 @@ class PasswordResetToken(Document):
     
     class Settings:
         collection = "password_reset_tokens"
+

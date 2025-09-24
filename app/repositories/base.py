@@ -43,11 +43,17 @@ class BaseRepository(Generic[DocumentType]):
     async def update_one(self, Object_id: str, update_data: Dict[str,Any]) ->Optional[DocumentType]:
        try:
            data=await self.find_by_ID(Object_id)
-           if data:
-               await data.update({"$set":update_data})
-               return data 
+           if not data:
+               return None
+           
+           await data.update({"$set":update_data})
+
+           updated_data=await self.find_by_ID(Object_id)
+           return updated_data 
+       
        except OperationFailure as e:
-           raise RuntimeError (f"Value error {e}")
+           raise RuntimeError (f"Upate Opration faild {e}")
+      
            
         
     #DeleteBYID

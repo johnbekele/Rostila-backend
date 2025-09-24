@@ -4,6 +4,7 @@ from beanie import init_beanie
 import os
 from dotenv import load_dotenv
 from app.models.users import User
+from app.models.auth import RefreshToken , PasswordResetToken
 from app.core.config import settings
 
 # Load environment variables from .env file
@@ -43,6 +44,8 @@ async def init_database():
             database=database,
             document_models=[
                 User,
+                RefreshToken,
+                PasswordResetToken
             ]
         )
         

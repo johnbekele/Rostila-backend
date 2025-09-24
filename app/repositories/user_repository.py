@@ -1,7 +1,7 @@
 from ..models.users import User
 from ..schemas.users import UserCreate
 from ..repositories.base import BaseRepository
-from typing import Optional, List
+from typing import Optional, List ,Dict
 from beanie import PydanticObjectId
 from pymongo.errors import DuplicateKeyError
 
@@ -32,4 +32,9 @@ class UserRepository(BaseRepository):
     async def get_all_users(self,skip:int =0 , limit:int=100)->List[User]:
         return await self.find_all(skip,limit)
     
+    async def update_user_by_id(self,user_id:str,user_data)->User:
+        result=await self.update_one(user_id,user_data)
+        if not result:
+            raise RuntimeError(f"user with id {user_id} doesn't  exis or opration faild ")
 
+        return result
