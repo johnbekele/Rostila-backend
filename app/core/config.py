@@ -1,6 +1,6 @@
 # app/core/config.py
-from pydantic_settings import BaseSettings
-from pydantic import Field, validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import Field, field_validator
 from typing import Optional
 import os
 from pathlib import Path
@@ -9,33 +9,34 @@ from dotenv import load_dotenv
 # Get the directory containing this file
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Load environment-specific .env file
-environment = os.getenv("ENVIRONMENT", "development")
-env_files = [
-    BASE_DIR / f".env.{environment}",  # .env.development, .env.production
-    BASE_DIR / ".env.local",           # Local overrides
-    BASE_DIR / ".env"                  # Default
-]
+# Load only the app-level .env once (so Pydantic picks it up)
+APP_ENV_FILE = BASE_DIR / ".env"
+if APP_ENV_FILE.exists():
+    print(f"Loading env file: {APP_ENV_FILE}")
+    load_dotenv(dotenv_path=APP_ENV_FILE, override=True)
 
-# Load env files in order (later files override earlier ones)
-for env_file in env_files:
-    if env_file.exists():
-        print(f"Loading env file: {env_file}")  # Debug info
-        load_dotenv(dotenv_path=env_file, override=False)
 
 class Settings(BaseSettings):
     # MongoDB Atlas settings
-    mongodb_url: str = Field(..., env="MONGODB_URL")  # Required field
-    database_name: str = Field(..., env="DATABASE_NAME")  # Required field
-    
+    mongodb_url: str = Field(
+        default_factory=lambda: os.getenv("MONGODB_URL", ""), env="MONGODB_URL"
+    )
+    database_name: str = Field(default="rostila_db", env="DATABASE_NAME")
+
     # Connection pool settings
     mongodb_max_connections: int = Field(default=10, env="MONGODB_MAX_CONNECTIONS")
-    mongodb_min_connections: int = Field(default=1, env="MONGODB_MIN_CONNECTIONS") 
+    mongodb_min_connections: int = Field(default=1, env="MONGODB_MIN_CONNECTIONS")
     mongodb_max_idle_time_ms: int = Field(default=30000, env="MONGODB_MAX_IDLE_TIME_MS")
-  
+
     # JWT Settings - Fixed the environment variable names
-    SECRET_KEY: str = Field(..., env="SECRET_KEY")  # Changed from CLIENT_SECRET
-    REFRESH_SECRET_KEY: str = Field(..., env="REFRESH_SECRET_KEY")
+    SECRET_KEY: str = Field(
+        default="dev_secret_key_please_change_me_32_chars_minxxxx",
+        env="SECRET_KEY",
+    )
+    REFRESH_SECRET_KEY: str = Field(
+        default="dev_refresh_key_please_change_me_32_charsminxxxx",
+        env="REFRESH_SECRET_KEY",
+    )
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
@@ -50,28 +51,34 @@ class Settings(BaseSettings):
     app_name: str = Field(default="Rostila Backend", env="APP_NAME")
     debug: bool = Field(default=True, env="DEBUG")
     environment: str = Field(default="development", env="ENVIRONMENT")
-    
-    @validator('debug', pre=True)
+    FRONTEND_URL: str = Field(default="http://localhost:3000", env="FRONTEND_URL")
+    BACKEND_URL: str = Field(default="http://localhost:8000", env="BACKEND_URL")
+
+    @field_validator("debug", mode="before")
     def parse_debug(cls, v):
         if isinstance(v, str):
             return v.lower() in ("true", "1", "yes", "on")
         return bool(v)
-    
-    @validator('mongodb_url')
+
+    @field_validator("mongodb_url")
     def validate_mongodb_url(cls, v):
         if not v or v == "None":
             raise ValueError("MONGODB_URL is required")
         return v
-    
-    @validator('SECRET_KEY', 'REFRESH_SECRET_KEY')
+
+    @field_validator("SECRET_KEY", "REFRESH_SECRET_KEY")
     def validate_secrets(cls, v):
         if not v or v == "None" or len(v) < 32:
             raise ValueError("Secret keys must be at least 32 characters long")
         return v
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = True  # Keep case sensitivity for consistency
+    # Pydantic v2 settings configuration
+    model_config = SettingsConfigDict(
+        env_file=str(APP_ENV_FILE),
+        env_file_encoding="utf-8",
+        case_sensitive=True,
+        extra="ignore",  # Ignore unrelated env vars (e.g., DOPPLER_*)
+    )
+
 
 settings = Settings()

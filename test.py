@@ -1,9 +1,9 @@
-from pathlib import  Path
+from pathlib import Path
 
 
-cwd=Path("./app")
+cwd = Path("./app")
 
-exist=cwd.exists()
+exist = cwd.exists()
 
 
 print(exist)
