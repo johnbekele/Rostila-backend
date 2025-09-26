@@ -11,5 +11,4 @@ pydantic-settings==2.5.2
 passlib==1.7.4
 email-validator==2.2.0
 certifi==2024.8.30
-smtplib==5.1.0
-MIMEText==5.0.0
+
