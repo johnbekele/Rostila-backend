@@ -1,10 +1,12 @@
 # core/security.py
 from datetime import datetime, timedelta, timezone  # Fixed: removed duplicate datetime
 from typing import Optional, Dict, Any
-from jose import JWTError, jwt
+from jose import JWTError, jwt , ExpiredSignatureError, JWSError
 from passlib.context import CryptContext
 from fastapi import HTTPException, status
 from app.core.config import settings
+import requests
+import time
 
 
 class SecurityManager:
@@ -36,7 +38,10 @@ class SecurityManager:
                 minutes=self.access_token_expire_minutes
             )
 
-        to_encode.update({"exp": expire})
+        to_encode.update({"exp": int(expire.timestamp())})
+        print(f"to_encode: {to_encode}")
+        print(f"self.secret_key: {self.secret_key}")
+        print(f"self.algorithm: {self.algorithm}")
         encoded_jwt = jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
         return encoded_jwt
 
@@ -63,20 +68,57 @@ class SecurityManager:
             return username
         except JWTError:
             return None
+    def verify_apple_token(identity_token: str, client_id: str) -> Optional[str]:
+        try:
+            # Fetch Apple's public keys
+            apple_key_url = "https://appleid.apple.com/auth/keys"
+            response = requests.get(apple_key_url)
+            response.raise_for_status()
+            jwks = response.json()
 
+            header = jwt.get_unverified_header(identity_token)
+            kid = header.get("kid")
+            alg = header.get("alg")
+    
+            key =next((k for k in jwks if k["id"] == kid ), None)
+
+            if key is None:
+                print("No matching key found")
+                return None
+            
+            public_key = jwt.construct_rsa_key(key)
+
+
+    
+            # Decode the token using Apple's key
+            payload = jwt.decode(
+               identity_token,
+                public_key,
+                algorithms=[alg],
+                audience=client_id,
+            )
+    
+            return payload.get("sub")  # unique user ID
+            
+        except Exception as e:
+            print("Apple token verification failed:", e)
+            return None
     def decode_token(self, token: str) -> Dict[str, Any]:
         """Decode JWT token and return payload"""
+        print(f"user_token_to_decode: {token}")
+        print(f"decoding_secret_key: {self.secret_key}")
+        print(f"decoding_algorithm: {self.algorithm}")
         try:
             payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
+            print(f"payload: {payload}")
             return payload
-        except JWTError:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Could not validate credentials",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        except jwt.InvalidTokenError:
-            return None
+        except ExpiredSignatureError:
+            print("Token has expired")
+            raise
+        except JWSError as e:
+            print(f"JWT Error: {e}")
+            raise
+     
 
     def refresh_access_token(self, refresh_token: str) -> str:
         """Create new access token from refresh token"""

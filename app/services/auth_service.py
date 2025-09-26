@@ -1,7 +1,7 @@
 # Auth business logic
 from app.models.auth import RefreshToken
-from app.schemas.authSChema import TokenResponse
-from app.repositories.user_repository import UserRepository
+from app.schemas.authSChema import TokenResponse, UserProfile
+from app.repositories.user_repository import UserRepository 
 from app.core.security import security_manager
 from app.services.user_service import UserService
 from fastapi import HTTPException, status
@@ -54,7 +54,9 @@ class AuthService:
         await refresh_token_doc.insert()
 
         return TokenResponse(
-            access_token=access_token, refresh_token=refresh_token, token_type="bearer"
+            access_token=access_token, 
+            refresh_token=refresh_token, 
+            token_type="bearer"
         )
 
     async def logout_user(self, refresh_token: str) -> bool:
@@ -103,3 +105,8 @@ class AuthService:
                 status_code=status.HTTP_400_BAD_REQUEST, detail="User already verified"
             )
         return {"message": "Verification email sent successfully"}
+    
+    async def find_user(self,token:str)-> str:
+        user= security_manager.decode_token(token)
+       
+        return str(user)

@@ -30,7 +30,7 @@ class Settings(BaseSettings):
 
     # JWT Settings - Fixed the environment variable names
     SECRET_KEY: str = Field(
-        default="dev_secret_key_please_change_me_32_chars_minxxxx",
+        default="e01b8d37762ae6c28f61309774ace021be5521d694eb24c0a3f43ebdb76a2f39",
         env="SECRET_KEY",
     )
     REFRESH_SECRET_KEY: str = Field(

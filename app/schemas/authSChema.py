@@ -24,11 +24,9 @@ class LoginRequest(BaseModel):
 
 
 class LoginResponse(BaseModel):
-    access_token: str
-    refresh_token: str
+    token: str
     token_type: str = "bearer"
-    expires_in: int  # seconds
-    user: dict  # User info
+    expires_at: datetime
 
 
 class TokenPayload(BaseModel):
@@ -74,8 +72,6 @@ class UserProfile(BaseModel):
 # TokenResponse
 class TokenResponse(BaseModel):
     """Response model for authentication tokens"""
-
-    access_token: str
     refresh_token: str
     token_type: str = "bearer"
     expires_in: int = 1800  # 30 minutes in seconds
