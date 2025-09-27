@@ -20,10 +20,13 @@ def get_email_service() -> EmailService:
 @router.post("/login")
 async def login(
     login_request: LoginRequest, auth_service: AuthService = Depends(get_auth_service)
-):
-    return await auth_service.login__user(
+):  
+   
+    response = await auth_service.login__user(
         login_request.email, login_request.password, {}
     )
+    print(f"response: {response}")
+    return response
 
 
 @router.get("/verify-email")
@@ -50,22 +53,27 @@ async def login_with_apple(token:str):
     return {"apple_sub":user_sub}
 
 
-@router.post("/find/user")
-async def find_user(
-    credential:HTTPAuthorizationCredentials=Depends(security),
-    auth_service:AuthService = Depends(get_auth_service)):
-
-    token= credential.credentials
-
+@router.post("/user-info")
+async def get_user_info(
+    credential: HTTPAuthorizationCredentials = Depends(security),
+    auth_service: AuthService = Depends(get_auth_service)
+):
+    print(f"credential: {credential}")
+    token = credential.credentials
     print(f"token: {token}")
-    user= await auth_service.find_user(token)
-
-    if not user:
+    
+    try:
+        user_data = await auth_service.find_user(token)
+        return user_data
+    except HTTPException:
+        # Re-raise HTTP exceptions (like 401, 404) as they are
+        raise
+    except Exception as e:
+        # Handle any other unexpected errors
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error"
         )
-    return user
     
 
     

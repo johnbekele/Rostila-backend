@@ -53,7 +53,10 @@ class Settings(BaseSettings):
     environment: str = Field(default="development", env="ENVIRONMENT")
     FRONTEND_URL: str = Field(default="http://localhost:3000", env="FRONTEND_URL")
     BACKEND_URL: str = Field(default="http://localhost:8000", env="BACKEND_URL")
-
+    
+    # Google AI API Key
+    GOOGLE_API_KEY: Optional[str] = Field(default=None, env="Google_AI_API", alias="Google_AI_API")
+    
     @field_validator("debug", mode="before")
     def parse_debug(cls, v):
         if isinstance(v, str):
@@ -76,7 +79,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=str(APP_ENV_FILE),
         env_file_encoding="utf-8",
-        case_sensitive=True,
+        case_sensitive=False,  # Allow case-insensitive env vars
         extra="ignore",  # Ignore unrelated env vars (e.g., DOPPLER_*)
     )
 

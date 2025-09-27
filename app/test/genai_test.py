@@ -2,13 +2,14 @@ from google import genai
 import os
 import time
 from google.genai.errors import ClientError
+from app.core.config import settings
 
-# Initialize the client with API key from environment variable
-api_key = os.getenv("Google_AI_API")
+# Initialize the client with API key from config
+api_key = settings.GOOGLE_API_KEY
 if not api_key:
-    print("Error: GOOGLE_API_KEY environment variable not set")
+    print("Error: Google_AI_API environment variable not set")
     print("Please set your Google API key:")
-    print("export GOOGLE_API_KEY='your_actual_api_key_here'")
+    print("export Google_AI_API='your_actual_api_key_here'")
     exit(1)
 
 client = genai.Client(api_key=api_key)

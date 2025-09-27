@@ -14,3 +14,4 @@ certifi==2024.8.30
 aiosmtplib==4.0.2
 black==25.9.0
 requests==2.32.5
+user-agents==2.2.0

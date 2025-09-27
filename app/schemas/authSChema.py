@@ -55,7 +55,17 @@ class ChangePasswordRequest(BaseModel):
     current_password: str
     new_password: str
 
+class DeviceInfo(BaseModel):
+    os: str
+    os_version: str
+    browser: str
+    browser_version: str
+    device: str
+    is_mobile: bool
+    is_tablet: bool
+    is_pc: bool
 
+    
 class UserProfile(BaseModel):
     """User profile response schema"""
 
@@ -66,12 +76,17 @@ class UserProfile(BaseModel):
     last_name: str
     is_active: bool
     created_at: datetime
-    last_login: Optional[datetime] = None
+
+    #log_in tracking information
+    last_login: Optional[datetime] 
+    last_ip: Optional[str] 
+    last_device: Optional[DeviceInfo] 
 
 
 # TokenResponse
 class TokenResponse(BaseModel):
     """Response model for authentication tokens"""
+    access_token: str
     refresh_token: str
     token_type: str = "bearer"
     expires_in: int = 1800  # 30 minutes in seconds
@@ -91,3 +106,13 @@ class RefreshTokenRequest(BaseModel):
 
 class ResendVerificationEmailRequest(BaseModel):
     email: str
+
+
+class LoginResponse(BaseModel):
+    token:str
+    token_type: str = "bearer"
+    expires_at: datetime
+    user: UserProfile
+
+
+

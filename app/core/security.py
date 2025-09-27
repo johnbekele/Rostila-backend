@@ -111,14 +111,19 @@ class SecurityManager:
         try:
             payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
             print(f"payload: {payload}")
-            return payload
+            return {"success": True, "payload": payload}
         except ExpiredSignatureError:
-            print("Token has expired")
-            raise
+            message = "Token has expired"
+            print(f"message: {message}")
+            return {"success": False, "message": message}
         except JWSError as e:
-            print(f"JWT Error: {e}")
-            raise
-     
+            message = f"JWT Error: {e}"
+            print(f"message: {message}")
+            return {"success": False, "message": message}
+        except Exception as e:
+            message = f"JWT Error: {e}"
+            print(f"message: {message}")
+            return {"success": False, "message": message}
 
     def refresh_access_token(self, refresh_token: str) -> str:
         """Create new access token from refresh token"""

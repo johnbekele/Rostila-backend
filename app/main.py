@@ -17,6 +17,8 @@ app = FastAPI(lifespan=lifespan)
 # routes
 from app.routers import users
 from app.routers import auth
+from app.routers import genai
 
 app.include_router(users.router, tags=["users"], prefix="/api/users")
 app.include_router(auth.router, tags=["auth"], prefix="/api/auth")
+app.include_router(genai.router, tags=["genai"], prefix="/api/genai")

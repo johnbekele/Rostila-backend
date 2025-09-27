@@ -1,6 +1,6 @@
 # Auth business logic
 from app.models.auth import RefreshToken
-from app.schemas.authSChema import TokenResponse, UserProfile
+from app.schemas.authSChema import TokenResponse, UserProfile ,LoginResponse
 from app.repositories.user_repository import UserRepository 
 from app.core.security import security_manager
 from app.services.user_service import UserService
@@ -8,7 +8,7 @@ from fastapi import HTTPException, status
 from datetime import timedelta, datetime
 from typing import Any, Dict, List, Optional
 from app.core.config import settings
-
+from app.utils.helpers import Helpers
 
 class AuthService:
     def __init__(self) -> None:
@@ -17,7 +17,7 @@ class AuthService:
 
     async def login__user(
         self, username: str, password: str, client_info: Dict[str, Any]
-    ) -> TokenResponse:
+    ) -> LoginResponse:
 
         authenticated_user = await self.user_service.authenticate_user(
             username, password
@@ -40,23 +40,39 @@ class AuthService:
         refresh_token = security_manager.create_refresh_token(
             data={"sub": authenticated_user.username}
         )
+        client_host=request.headers.get("x-forwarded-host",request.client.host)
 
+
+        
         refresh_token_doc = RefreshToken(
             user_id=str(authenticated_user.id),
             token=refresh_token,
+            time_stamp=datetime.utcnow(),
             expires_at=datetime.utcnow() + timedelta(days=7),
             is_active=True,
-            ip_address=client_info.get("ip_address") if client_info else None,
+            ip_address=client_host,
             device_info=client_info.get("device_info") if client_info else None,
             user_agent=client_info.get("user_agent") if client_info else None,
         )
 
         await refresh_token_doc.insert()
 
-        return TokenResponse(
-            access_token=access_token, 
-            refresh_token=refresh_token, 
-            token_type="bearer"
+        user_profile = UserProfile(
+            id=str(authenticated_user.id),
+            email=authenticated_user.email,
+            username=authenticated_user.username,
+            first_name=authenticated_user.first_name,
+            last_name=authenticated_user.last_name,
+            is_active=authenticated_user.is_active,
+            created_at=authenticated_user.created_at,
+            last_login=authenticated_user.last_login,
+        )
+
+        return LoginResponse(
+            token=access_token, 
+            token_type="bearer",
+            expires_at=datetime.utcnow() + timedelta(days=7),
+            user=user_profile
         )
 
     async def logout_user(self, refresh_token: str) -> bool:
@@ -106,7 +122,38 @@ class AuthService:
             )
         return {"message": "Verification email sent successfully"}
     
-    async def find_user(self,token:str)-> str:
-        user= security_manager.decode_token(token)
-       
-        return str(user)
+    async def find_user(self, token: str) -> dict:
+        # Decode the token to get the username
+        response = security_manager.decode_token(token)
+        payload = response.get("payload")
+        message = response.get("message")
+        success = response.get("success")
+        username = payload.get("sub")
+        
+        if not username:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token"
+            )
+        
+        # Find the user in the database
+        user = await self.user_repository.get_user_by_username(username)
+        
+        if not user:
+           return {
+                "success": success,
+                "message": message
+            }
+        
+        # Return user data
+        return {
+            "success": True,
+            "id": str(user.id),
+            "username": user.username,
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "is_verified": user.is_verified,
+            "created_at": user.created_at.isoformat() if user.created_at else None,
+            "updated_at": user.updated_at.isoformat() if user.updated_at else None
+        }
