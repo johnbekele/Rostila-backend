@@ -1,5 +1,5 @@
 # Helper functions
-from app.schemas.authSChema import DeviceInfo
+from app.schemas.auth_schema import DeviceInfo
 from user_agents import parse
 
 class Helpers:

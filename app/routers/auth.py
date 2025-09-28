@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, Query, HTTPException, status,Form
+from fastapi import APIRouter, Depends, Query, HTTPException, status,Form ,Request
 from app.services.auth_service import AuthService
-from app.schemas.authSChema import LoginRequest, ResendVerificationEmailRequest
+from app.schemas.auth_schema import LoginRequest, ResendVerificationEmailRequest
 from app.services.email_service import EmailService
-from app.services.apple_auth import AppleJWTVerifier
+from app.services.apple_auth_service import AppleJWTVerifier
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 router = APIRouter()
@@ -19,11 +19,12 @@ def get_email_service() -> EmailService:
 
 @router.post("/login")
 async def login(
+    client_info: Request,
     login_request: LoginRequest, auth_service: AuthService = Depends(get_auth_service)
 ):  
    
     response = await auth_service.login__user(
-        login_request.email, login_request.password, {}
+        login_request.email, login_request.password,client_info
     )
     print(f"response: {response}")
     return response
@@ -54,7 +55,7 @@ async def login_with_apple(token:str):
 
 
 @router.post("/user-info")
-async def get_user_info(
+async def find_user(
     credential: HTTPAuthorizationCredentials = Depends(security),
     auth_service: AuthService = Depends(get_auth_service)
 ):

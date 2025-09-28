@@ -78,9 +78,9 @@ class UserProfile(BaseModel):
     created_at: datetime
 
     #log_in tracking information
-    last_login: Optional[datetime] 
-    last_ip: Optional[str] 
-    last_device: Optional[DeviceInfo] 
+    last_login: Optional[datetime] = None
+    last_ip: Optional[str] = None
+    last_device: Optional[str] = None
 
 
 # TokenResponse

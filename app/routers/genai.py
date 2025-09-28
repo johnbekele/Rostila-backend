@@ -1,7 +1,7 @@
 import fastapi
 from fastapi import Depends
 from app.services.genai_service import GenaiService
-from app.schemas.genai import GenaiRequest, GenaiResponse
+from app.schemas.genai_schema import GenaiRequest, GenaiResponse
 
 router = fastapi.APIRouter()
 

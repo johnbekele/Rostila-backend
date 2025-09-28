@@ -1,10 +1,10 @@
 # Auth business logic
 from app.models.auth import RefreshToken
-from app.schemas.authSChema import TokenResponse, UserProfile ,LoginResponse
+from app.schemas.auth_schema import TokenResponse, UserProfile ,LoginResponse
 from app.repositories.user_repository import UserRepository 
 from app.core.security import security_manager
 from app.services.user_service import UserService
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status ,Request
 from datetime import timedelta, datetime
 from typing import Any, Dict, List, Optional
 from app.core.config import settings
@@ -19,9 +19,18 @@ class AuthService:
         self, username: str, password: str, client_info: Dict[str, Any]
     ) -> LoginResponse:
 
+  
         authenticated_user = await self.user_service.authenticate_user(
             username, password
         )
+       #extract client info
+        client_ip = client_info.headers.get("x-forwarded-for") or client_info.client.host
+        raw_user_agent = client_info.headers.get("user-agent", "unknown")
+        device_info = Helpers.get_device_info(raw_user_agent)
+
+        print(f"client_ip: {client_ip}")
+        print(f"device_info: {device_info}")
+        print(f"authenticated_user: {authenticated_user}")
 
         if not authenticated_user:
             raise HTTPException(
@@ -40,19 +49,14 @@ class AuthService:
         refresh_token = security_manager.create_refresh_token(
             data={"sub": authenticated_user.username}
         )
-        client_host=request.headers.get("x-forwarded-host",request.client.host)
 
-
-        
         refresh_token_doc = RefreshToken(
             user_id=str(authenticated_user.id),
             token=refresh_token,
-            time_stamp=datetime.utcnow(),
             expires_at=datetime.utcnow() + timedelta(days=7),
             is_active=True,
-            ip_address=client_host,
-            device_info=client_info.get("device_info") if client_info else None,
-            user_agent=client_info.get("user_agent") if client_info else None,
+            ip_address=client_ip,
+            device_info=device_info.device,
         )
 
         await refresh_token_doc.insert()
@@ -66,6 +70,8 @@ class AuthService:
             is_active=authenticated_user.is_active,
             created_at=authenticated_user.created_at,
             last_login=authenticated_user.last_login,
+            last_ip=client_info.get("ip_address") if client_info else None,
+            last_device=client_info.get("device_info") if client_info else None,
         )
 
         return LoginResponse(
@@ -140,10 +146,10 @@ class AuthService:
         user = await self.user_repository.get_user_by_username(username)
         
         if not user:
-           return {
-                "success": success,
-                "message": message
-            }
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
         
         # Return user data
         return {

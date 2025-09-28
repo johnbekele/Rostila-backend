@@ -1,6 +1,6 @@
 from ..models.users import User
-from ..schemas.users import UserCreate
-from ..repositories.base import BaseRepository
+from ..schemas.user_schema import UserCreate
+from ..repositories.base_repository import BaseRepository
 from typing import Optional, List, Dict
 from beanie import PydanticObjectId
 from pymongo.errors import DuplicateKeyError

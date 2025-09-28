@@ -1,5 +1,5 @@
 from app.repositories.user_repository import UserRepository
-from app.schemas.users import UserCreate, UserResponse
+from app.schemas.user_schema import UserCreate, UserResponse
 from fastapi import HTTPException, status
 from typing import Optional, List, Dict, Any
 from app.core.security import security_manager
