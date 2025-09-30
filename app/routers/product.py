@@ -19,14 +19,14 @@ async def get_all_products(product_service: ProductService = Depends(get_product
 async def get_product_by_id(product_id: str, product_service: ProductService = Depends(get_product_service)):
     return await product_service.get_product_by_id(product_id)
 
-@router.get("/{product_name}")
+@router.get("/name/{product_name}")
 async def get_product_by_name(product_name: str, product_service: ProductService = Depends(get_product_service)):
     return await product_service.get_product_by_name(product_name)
 
-@router.get("/{origin}")
+@router.get("/origin/{origin}")
 async def get_products_by_origin(origin: str, product_service: ProductService = Depends(get_product_service)):
     return await product_service.get_products_by_origin(origin)
 
-@router.get("/{region}")
+@router.get("/region/{region}")
 async def get_products_by_region(region: str, product_service: ProductService = Depends(get_product_service)):
     return await product_service.get_products_by_region(region)
