@@ -75,6 +75,28 @@ async def find_user(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
         )
+
+@router.post("/find/user")
+async def find_user_alt(
+    credential: HTTPAuthorizationCredentials = Depends(security),
+    auth_service: AuthService = Depends(get_auth_service)
+):
+    print(f"credential: {credential}")
+    token = credential.credentials
+    print(f"token: {token}")
+    
+    try:
+        user_data = await auth_service.find_user(token)
+        return user_data
+    except HTTPException:
+        # Re-raise HTTP exceptions (like 401, 404) as they are
+        raise
+    except Exception as e:
+        # Handle any other unexpected errors
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error"
+        )
     
 
     
