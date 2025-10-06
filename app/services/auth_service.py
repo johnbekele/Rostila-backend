@@ -16,15 +16,15 @@ class AuthService:
         self.user_service = UserService()
 
     async def login__user(
-        self, username: str, password: str, client_info: Dict[str, Any]
+        self, username: str, password: str, client_info: Request
     ) -> LoginResponse:
 
   
         authenticated_user = await self.user_service.authenticate_user(
             username, password
         )
-       #extract client info
-        client_ip = client_info.headers.get("x-forwarded-for") or client_info.client.host
+        #extract client info
+        client_ip = client_info.headers.get("x-forwarded-for") or client_info.headers.get("x-real-ip") or client_info.client.host
         raw_user_agent = client_info.headers.get("user-agent", "unknown")
         device_info = Helpers.get_device_info(raw_user_agent)
 
@@ -39,15 +39,46 @@ class AuthService:
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
+        # Update user's last login information
+        await self.user_repository.update_user_by_id(
+            str(authenticated_user.id), 
+            {
+                "last_login": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
+            }
+        )
+
         # as it's optional we can also leave it open so it will defal to ENV value from settings
 
         access_token = security_manager.create_access_token(
-            data={"sub": authenticated_user.username},
+            data={
+                "sub": authenticated_user.username,
+                "user_id": str(authenticated_user.id),
+                "email": authenticated_user.email,
+                "first_name": authenticated_user.first_name,
+                "last_name": authenticated_user.last_name,
+                "phone_number": authenticated_user.phone_number,
+                "company_name": authenticated_user.company_name,
+                "company_address": authenticated_user.company_address,
+                "company_phone_number": authenticated_user.company_phone_number,
+                "company_email": authenticated_user.company_email,
+                "company_website": authenticated_user.company_website,
+                "is_verified": authenticated_user.is_verified,
+                "last_ip": client_ip,
+                "last_device": device_info.device if device_info else None,
+                "login_time": datetime.utcnow().isoformat()
+            },
             expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
         )
 
         refresh_token = security_manager.create_refresh_token(
-            data={"sub": authenticated_user.username}
+            data={
+                "sub": authenticated_user.username,
+                "user_id": str(authenticated_user.id),
+                "email": authenticated_user.email,
+                "last_ip": client_ip,
+                "last_device": device_info.device if device_info else None
+            }
         )
 
         refresh_token_doc = RefreshToken(
@@ -67,11 +98,18 @@ class AuthService:
             username=authenticated_user.username,
             first_name=authenticated_user.first_name,
             last_name=authenticated_user.last_name,
+            phone_number=authenticated_user.phone_number,
+            company_name=authenticated_user.company_name,
+            company_address=authenticated_user.company_address,
+            company_phone_number=authenticated_user.company_phone_number,
+            company_email=authenticated_user.company_email,
+            company_website=authenticated_user.company_website,
             is_active=authenticated_user.is_active,
+            is_verified=authenticated_user.is_verified,
             created_at=authenticated_user.created_at,
-            last_login=authenticated_user.last_login,
-            last_ip=client_info.get("ip_address") if client_info else None,
-            last_device=client_info.get("device_info") if client_info else None,
+            last_login=datetime.utcnow(),
+            last_ip=client_ip,
+            last_device=device_info.device if device_info else None,
         )
 
         return LoginResponse(
@@ -159,7 +197,16 @@ class AuthService:
             "email": user.email,
             "first_name": user.first_name,
             "last_name": user.last_name,
+            "last_login": user.last_login,
+            "last_ip": user.last_ip,
+            "last_device": user.last_device,
             "is_verified": user.is_verified,
+            "phone_number": user.phone_number,
+            "company_name": user.company_name,
+            "company_address": user.company_address,
+            "company_phone_number": user.company_phone_number,
+            "company_email": user.company_email,
+            "company_website": user.company_website,
             "created_at": user.created_at.isoformat() if user.created_at else None,
             "updated_at": user.updated_at.isoformat() if user.updated_at else None
         }

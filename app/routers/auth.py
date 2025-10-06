@@ -3,6 +3,7 @@ from app.services.auth_service import AuthService
 from app.schemas.auth_schema import LoginRequest, ResendVerificationEmailRequest
 from app.services.email_service import EmailService
 from app.services.apple_auth_service import AppleJWTVerifier
+from app.core.security import security_manager
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 router = APIRouter()
@@ -96,6 +97,54 @@ async def find_user_alt(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
+        )
+
+@router.post("/token-info")
+async def get_token_info(
+    credential: HTTPAuthorizationCredentials = Depends(security),
+    auth_service: AuthService = Depends(get_auth_service)
+):
+    """Get detailed token information including company and IP data"""
+    token = credential.credentials
+    
+    try:
+        # Decode the token to get all the information
+        response = security_manager.decode_token(token)
+        payload = response.get("payload")
+        
+        if not payload:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token"
+            )
+        
+        return {
+            "success": True,
+            "token_info": {
+                "username": payload.get("sub"),
+                "user_id": payload.get("user_id"),
+                "email": payload.get("email"),
+                "first_name": payload.get("first_name"),
+                "last_name": payload.get("last_name"),
+                "phone_number": payload.get("phone_number"),
+                "company_name": payload.get("company_name"),
+                "company_address": payload.get("company_address"),
+                "company_phone_number": payload.get("company_phone_number"),
+                "company_email": payload.get("company_email"),
+                "company_website": payload.get("company_website"),
+                "is_verified": payload.get("is_verified"),
+                "last_ip": payload.get("last_ip"),
+                "last_device": payload.get("last_device"),
+                "login_time": payload.get("login_time"),
+                "expires_at": payload.get("exp"),
+                "issued_at": payload.get("iat")
+            }
+        }
+    except Exception as e:
+        print(f"Error decoding token: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token"
         )
     
 

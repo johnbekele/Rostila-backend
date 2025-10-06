@@ -30,9 +30,23 @@ class LoginResponse(BaseModel):
 
 
 class TokenPayload(BaseModel):
-    sub: str  # user_id
+    sub: str  # username
+    user_id: Optional[str] = None
+    email: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone_number: Optional[str] = None
+    company_name: Optional[str] = None
+    company_address: Optional[str] = None
+    company_phone_number: Optional[str] = None
+    company_email: Optional[str] = None
+    company_website: Optional[str] = None
+    is_verified: Optional[bool] = None
+    last_ip: Optional[str] = None
+    last_device: Optional[str] = None
+    login_time: Optional[str] = None
     exp: datetime
-    iat: datetime
+    iat: Optional[datetime] = None
     type: str  # "access" or "refresh"
 
 
@@ -74,7 +88,14 @@ class UserProfile(BaseModel):
     username: str
     first_name: str
     last_name: str
+    phone_number: Optional[str] = None
+    company_name: Optional[str] = None
+    company_address: Optional[str] = None
+    company_phone_number: Optional[str] = None
+    company_email: Optional[str] = None
+    company_website: Optional[str] = None
     is_active: bool
+    is_verified: bool
     created_at: datetime
 
     #log_in tracking information

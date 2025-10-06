@@ -17,10 +17,18 @@ class User(Document):
     hashed_password: str
     first_name: str
     last_name: str
+    phone_number: Optional[str] = None
+    company_name: Optional[str] = None
+    company_address: Optional[str] = None
+    company_phone_number: Optional[str] = None
+    company_email: Optional[str] = None
+    company_website: Optional[str] = None
     is_active: bool = True
     is_verified: bool = False
     verification_token: Optional[str] = None
     last_login: Optional[datetime] = None
+    last_ip: Optional[str] = None
+    last_device: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: Optional[datetime] = None
 
