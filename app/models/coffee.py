@@ -1,4 +1,4 @@
-# models/product.py
+# models/coffee.py
 from beanie import Document, Indexed
 from pydantic import Field
 from datetime import datetime
@@ -6,9 +6,9 @@ from typing import Optional, List
 from pymongo import IndexModel
 
 
-class Product(Document):
+class Coffee(Document):
     """
-    Product model for Ethiopian coffee and related goods.
+    Coffee model for Ethiopian coffee and related goods.
     Based on the provided schema.
     """
 
@@ -67,7 +67,7 @@ class Product(Document):
 
     class Settings:
         # MongoDB collection name
-        collection = "products"
+        collection = "coffees"
 
         # Indexes for optimization
         indexes = [

@@ -6,7 +6,7 @@ import os
 # from dotenv import load_dotenv
 from app.models.users import User
 from app.models.auth import RefreshToken, PasswordResetToken
-from app.models.product import Product
+from app.models.coffee import Coffee
 from app.core.config import settings
 import certifi
 
@@ -46,7 +46,7 @@ async def init_database():
 
         # Initialize beanie with ALL document models
         await init_beanie(
-            database=database, document_models=[User, RefreshToken, PasswordResetToken, Product]
+            database=database, document_models=[User, RefreshToken, PasswordResetToken, Coffee]
         )
 
         print("🍃 Connected to MongoDB Atlas!")

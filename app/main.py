@@ -28,9 +28,10 @@ app.add_middleware(
 from app.routers import users
 from app.routers import auth
 from app.routers import genai
-from app.routers import product
+from app.routers import coffee
+
 
 app.include_router(users.router, tags=["users"], prefix="/api/users")
 app.include_router(auth.router, tags=["auth"], prefix="/api/auth")
 app.include_router(genai.router, tags=["genai"], prefix="/api/genai")
-app.include_router(product.router, tags=["product"], prefix="/api/product")
+app.include_router(coffee.router, tags=["coffee"], prefix="/api/coffee")

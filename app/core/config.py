@@ -57,6 +57,10 @@ class Settings(BaseSettings):
     # Google AI API Key
     GOOGLE_API_KEY: Optional[str] = Field(default=None, env="Google_AI_API", alias="Google_AI_API")
     
+     #Pinecone Vector Store Settings
+    PINECONE_API_KEY: Optional[str] = Field(default=None, env="PINECONE_API_KEY", alias="PINECONE_API_KEY")
+    PINECONE_INDEX_NAME:Optional[str] = Field(default=None, env="PINECONE_INDEX_NAME", alias="PINECONE_INDEX_NAME")
+
     @field_validator("debug", mode="before")
     def parse_debug(cls, v):
         if isinstance(v, str):

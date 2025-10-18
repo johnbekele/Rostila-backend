@@ -1,12 +1,12 @@
-# schemas/product_schema.py
+# schemas/coffee_schema.py
 from pydantic import BaseModel, Field, validator
 from typing import Optional, List
 from datetime import datetime
 
 
-class ProductBase(BaseModel):
-    """Base product schema with common fields"""
-    name: str = Field(..., min_length=1, max_length=200, description="Product name")
+class CoffeeBase(BaseModel):
+    """Base coffee schema with common fields"""
+    name: str = Field(..., min_length=1, max_length=200, description="Coffee name")
     origin: Optional[str] = Field(None, max_length=100, description="Country of origin")
     region: Optional[str] = Field(None, max_length=100, description="Region within the country")
     producer_id: Optional[str] = Field(None, max_length=100, description="Producer identifier")
@@ -25,14 +25,14 @@ class ProductBase(BaseModel):
     availability: str = Field(default="In Stock", description="Availability status")
     quantity_available: int = Field(default=0, ge=0, description="Available quantity")
     unit: str = Field(default="kg", max_length=10, description="Unit of measurement")
-    images: List[str] = Field(default=[], description="Product image URLs")
-    certifications: List[str] = Field(default=[], description="Product certifications")
-    description: Optional[str] = Field(None, max_length=2000, description="Product description")
+    images: List[str] = Field(default=[], description="Coffee image URLs")
+    certifications: List[str] = Field(default=[], description="Coffee certifications")
+    description: Optional[str] = Field(None, max_length=2000, description="Coffee description")
     shipping_time: Optional[str] = Field(None, max_length=100, description="Estimated shipping time")
     min_order_quantity: int = Field(default=1, ge=1, description="Minimum order quantity")
     max_order_quantity: Optional[int] = Field(None, ge=1, description="Maximum order quantity")
-    is_featured: bool = Field(default=False, description="Whether product is featured")
-    is_verified: bool = Field(default=False, description="Whether product is verified")
+    is_featured: bool = Field(default=False, description="Whether coffee is featured")
+    is_verified: bool = Field(default=False, description="Whether coffee is verified")
 
     @validator("flavor_notes")
     def validate_flavor_notes(cls, v):
@@ -53,13 +53,13 @@ class ProductBase(BaseModel):
         return v
 
 
-class ProductCreate(ProductBase):
-    """Schema for creating a new product"""
+class CoffeeCreate(CoffeeBase):
+    """Schema for creating a new coffee"""
     pass
 
 
-class ProductUpdate(BaseModel):
-    """Schema for updating a product (all fields optional)"""
+class CoffeeUpdate(BaseModel):
+    """Schema for updating a coffee (all fields optional)"""
     name: Optional[str] = Field(None, min_length=1, max_length=200)
     origin: Optional[str] = Field(None, max_length=100)
     region: Optional[str] = Field(None, max_length=100)
@@ -107,9 +107,9 @@ class ProductUpdate(BaseModel):
         return v
 
 
-class ProductResponse(ProductBase):
-    """Schema for product response (includes all fields plus metadata)"""
-    id: str = Field(..., description="Product ID")
+class CoffeeResponse(CoffeeBase):
+    """Schema for coffee response (includes all fields plus metadata)"""
+    id: str = Field(..., description="Coffee ID")
     rating: Optional[float] = Field(None, ge=0, le=5, description="Average rating")
     reviews_count: Optional[int] = Field(None, ge=0, description="Number of reviews")
     created_at: datetime = Field(..., description="Creation timestamp")
@@ -119,17 +119,17 @@ class ProductResponse(ProductBase):
         from_attributes = True
 
 
-class ProductListResponse(BaseModel):
-    """Schema for paginated product list response"""
-    products: List[ProductResponse] = Field(..., description="List of products")
-    total: int = Field(..., description="Total number of products")
+class CoffeeListResponse(BaseModel):
+    """Schema for paginated coffee list response"""
+    coffees: List[CoffeeResponse] = Field(..., description="List of coffees")
+    total: int = Field(..., description="Total number of coffees")
     page: int = Field(..., ge=1, description="Current page number")
     size: int = Field(..., ge=1, description="Page size")
     pages: int = Field(..., ge=1, description="Total number of pages")
 
 
-class ProductSearchRequest(BaseModel):
-    """Schema for product search request"""
+class CoffeeSearchRequest(BaseModel):
+    """Schema for coffee search request"""
     query: Optional[str] = Field(None, max_length=200, description="Search query")
     origin: Optional[str] = Field(None, max_length=100, description="Filter by origin")
     region: Optional[str] = Field(None, max_length=100, description="Filter by region")
@@ -138,8 +138,8 @@ class ProductSearchRequest(BaseModel):
     max_price: Optional[float] = Field(None, ge=0, description="Maximum price filter")
     min_rating: Optional[float] = Field(None, ge=0, le=5, description="Minimum rating filter")
     availability: Optional[str] = Field(None, description="Filter by availability")
-    is_featured: Optional[bool] = Field(None, description="Filter featured products")
-    is_verified: Optional[bool] = Field(None, description="Filter verified products")
+    is_featured: Optional[bool] = Field(None, description="Filter featured coffees")
+    is_verified: Optional[bool] = Field(None, description="Filter verified coffees")
     page: int = Field(default=1, ge=1, description="Page number")
     size: int = Field(default=20, ge=1, le=100, description="Page size")
     sort_by: Optional[str] = Field(default="created_at", description="Sort field")
@@ -169,8 +169,8 @@ class ProductSearchRequest(BaseModel):
         return v
 
 
-class ProductReviewRequest(BaseModel):
-    """Schema for product review request"""
+class CoffeeReviewRequest(BaseModel):
+    """Schema for coffee review request"""
     rating: float = Field(..., ge=1, le=5, description="Rating from 1 to 5")
     comment: Optional[str] = Field(None, max_length=1000, description="Review comment")
     title: Optional[str] = Field(None, max_length=200, description="Review title")
@@ -182,11 +182,11 @@ class ProductReviewRequest(BaseModel):
         return v
 
 
-class ProductReviewResponse(BaseModel):
-    """Schema for product review response"""
+class CoffeeReviewResponse(BaseModel):
+    """Schema for coffee review response"""
     id: str = Field(..., description="Review ID")
     user_id: str = Field(..., description="User ID")
-    product_id: str = Field(..., description="Product ID")
+    coffee_id: str = Field(..., description="Coffee ID")
     rating: float = Field(..., ge=1, le=5, description="Rating")
     comment: Optional[str] = Field(None, description="Review comment")
     title: Optional[str] = Field(None, description="Review title")
@@ -197,12 +197,12 @@ class ProductReviewResponse(BaseModel):
         from_attributes = True
 
 
-class ProductStatsResponse(BaseModel):
-    """Schema for product statistics response"""
-    total_products: int = Field(..., description="Total number of products")
-    featured_products: int = Field(..., description="Number of featured products")
-    verified_products: int = Field(..., description="Number of verified products")
-    average_rating: Optional[float] = Field(None, description="Average rating across all products")
+class CoffeeStatsResponse(BaseModel):
+    """Schema for coffee statistics response"""
+    total_coffees: int = Field(..., description="Total number of coffees")
+    featured_coffees: int = Field(..., description="Number of featured coffees")
+    verified_coffees: int = Field(..., description="Number of verified coffees")
+    average_rating: Optional[float] = Field(None, description="Average rating across all coffees")
     total_reviews: int = Field(..., description="Total number of reviews")
     price_range: dict = Field(..., description="Price range statistics")
     origin_distribution: dict = Field(..., description="Distribution by origin")
